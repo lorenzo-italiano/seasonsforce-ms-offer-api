@@ -6,18 +6,14 @@ services:
     container_name: offers-db
     volumes:
       - db_data:/var/lib/postgresql/data
-#    environment:
-#      POSTGRES_USER: myuser
-#      POSTGRES_PASSWORD: mypassword
-#      POSTGRES_DB: mydb
-    depends_on:
-      - offers-api
     networks:
       - offers-network
 
   offers-api:
     image: offers-api:latest  # Remplacez par l'image de votre application Spring Boot
     container_name: offers-api
+    depends_on:
+      - offers-db
     ports:
       - "8090:8080"  # Si votre application écoute sur le port 8080
     networks:
