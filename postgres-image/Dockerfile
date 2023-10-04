@@ -4,7 +4,7 @@ FROM postgres:latest
 # Variables d'environnement pour configurer PostgreSQL
 ENV POSTGRES_USER seasonsforce
 ENV POSTGRES_PASSWORD seasonsforce
-ENV POSTGRES_DB offers
+ENV POSTGRES_DB offer
 
 # Port sur lequel PostgreSQL écoutera (par défaut : 5432)
 EXPOSE 5432
