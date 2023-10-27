@@ -6,26 +6,18 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-@Entity
-@Table(name = "offer", schema = "public")
-public class Offer {
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+public class OfferDetailDTO {
 
+    private UUID id;
     private String job_title;
     private String job_description;
     // CDI or CDD
     private String contract_type;
-    private UUID companyId;
+    private CompanyDTO company;
     private double salary;
-    private UUID addressId;
+    private AddressDTO address;
     private float hours_per_week;
-
     // accommodation, meals, transport
-    @ElementCollection(targetClass = String.class, fetch = FetchType.LAZY)
-    @CollectionTable(name = "benefits", joinColumns = @JoinColumn(name = "id"))
-    @Column(name = "benefit", nullable = false)
     private List<String> benefits;
     private String offer_language;
     private Date publication_date;
@@ -35,13 +27,8 @@ public class Offer {
     private String contact_information;
     private String required_degree;
     private String required_experience;
-    @ElementCollection(targetClass = String.class, fetch = FetchType.LAZY)
-    @CollectionTable(name = "skills", joinColumns = @JoinColumn(name = "id"))
-    @Column(name = "skill", nullable = false)
     private List<String> required_skills;
-
-    private UUID jobCategoryId;
-
+    private JobCategory jobCategory;
     private UUID creatorId;
 
     public UUID getId() {
@@ -76,12 +63,12 @@ public class Offer {
         this.contract_type = contract_type;
     }
 
-    public UUID getCompanyId() {
-        return companyId;
+    public CompanyDTO getCompany() {
+        return company;
     }
 
-    public void setCompanyId(UUID companyId) {
-        this.companyId = companyId;
+    public void setCompany(CompanyDTO company) {
+        this.company = company;
     }
 
     public float getHours_per_week() {
@@ -164,20 +151,20 @@ public class Offer {
         this.required_skills = required_skills;
     }
 
-    public UUID getAddressId() {
-        return addressId;
+    public AddressDTO getAddress() {
+        return address;
     }
 
-    public void setAddressId(UUID addressId) {
-        this.addressId = addressId;
+    public void setAddress(AddressDTO address) {
+        this.address = address;
     }
 
-    public UUID getJobCategoryId() {
-        return jobCategoryId;
+    public JobCategory getJobCategory() {
+        return jobCategory;
     }
 
-    public void setJobCategoryId(UUID jobCategoryId) {
-        this.jobCategoryId = jobCategoryId;
+    public void setJobCategory(JobCategory jobCategory) {
+        this.jobCategory = jobCategory;
     }
 
     public UUID getCreatorId() {
