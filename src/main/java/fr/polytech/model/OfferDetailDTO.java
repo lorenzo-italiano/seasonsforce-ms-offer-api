@@ -31,6 +31,31 @@ public class OfferDetailDTO {
     private JobCategory jobCategory;
     private UUID creatorId;
 
+    public static OfferDetailDTO getOfferDetailDTO(Offer offer, CompanyDTO companyDTO, AddressDTO addressDTO, JobCategory jobCategory) {
+        OfferDetailDTO offerDetailDTO = new OfferDetailDTO();
+
+        offerDetailDTO.setId(offer.getId());
+        offerDetailDTO.setJob_title(offer.getJob_title());
+        offerDetailDTO.setJob_description(offer.getJob_description());
+        offerDetailDTO.setContract_type(offer.getContract_type());
+        offerDetailDTO.setHours_per_week(offer.getHours_per_week());
+        offerDetailDTO.setSalary(offer.getSalary());
+        offerDetailDTO.setBenefits(offer.getBenefits());
+        offerDetailDTO.setOffer_language(offer.getOffer_language());
+        offerDetailDTO.setPublication_date(offer.getPublication_date());
+        offerDetailDTO.setOffer_status(offer.getOffer_status());
+        offerDetailDTO.setContact_information(offer.getContact_information());
+        offerDetailDTO.setRequired_degree(offer.getRequired_degree());
+        offerDetailDTO.setRequired_experience(offer.getRequired_experience());
+        offerDetailDTO.setRequired_skills(offer.getRequired_skills());
+        offerDetailDTO.setCompany(companyDTO);
+        offerDetailDTO.setAddress(addressDTO);
+        offerDetailDTO.setJobCategory(jobCategory);
+        offerDetailDTO.setCreatorId(offer.getCreatorId());
+
+        return offerDetailDTO;
+    }
+
     public UUID getId() {
         return id;
     }
