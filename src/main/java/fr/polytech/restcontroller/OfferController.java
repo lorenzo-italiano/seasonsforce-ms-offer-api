@@ -1,16 +1,24 @@
 package fr.polytech.restcontroller;
 
+import fr.polytech.model.OfferDetailDTO;
 import fr.polytech.service.OfferService;
 import fr.polytech.model.Offer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
 
 @RestController
+//@CrossOrigin(origins = "http://localhost:19006", allowedHeaders = "*", allowCredentials = "true", exposedHeaders = {"Access-Control-Allow-Origin","Access-Control-Allow-Credentials"})
 @RequestMapping("/api/v1/offer")
 public class OfferController {
+
+    private final Logger logger = LoggerFactory.getLogger(OfferController.class);
+
     @Autowired
     private OfferService offerService;
 
@@ -19,9 +27,18 @@ public class OfferController {
         return offerService.getAllOffers();
     }
 
+    @GetMapping("/detailed")
+    public List<OfferDetailDTO> getAllDetailedOffers(@RequestHeader("Authorization") String token) {
+        return offerService.getAllOffersDetailed(token);
+    }
+
     @GetMapping("/{id}")
-    public Offer getOfferById(@PathVariable UUID id) {
-        return offerService.getOfferById(id);
+    public ResponseEntity<OfferDetailDTO> getOfferById(@RequestHeader("Authorization") String token, @PathVariable UUID id) {
+        try {
+            return ResponseEntity.ok(offerService.getDetailedOfferById(id, token));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @GetMapping("/company/{id}")
@@ -43,22 +60,7 @@ public class OfferController {
         }
 
         // Mettez à jour les propriétés de l'utilisateur existant avec les données du nouveau utilisateur
-        existingOffer.setOffer_language(offer.getOffer_language());
-        existingOffer.setOffer_status(offer.getOffer_status());
-        existingOffer.setBenefits(offer.getBenefits());
-        existingOffer.setCompanyId(offer.getCompanyId());
-        existingOffer.setContract_type(offer.getContract_type());
-        existingOffer.setHours_per_week(offer.getHours_per_week());
-        existingOffer.setLocation(offer.getLocation());
-        existingOffer.setModality(offer.getModality());
-        existingOffer.setSalary(offer.getSalary());
-        existingOffer.setContact_information(offer.getContact_information());
-        existingOffer.setJob_description(offer.getJob_description());
-        existingOffer.setJob_title(offer.getJob_title());
-        existingOffer.setPublication_date(offer.getPublication_date());
-        existingOffer.setRequired_skills(offer.getRequired_skills());
-        existingOffer.setRequired_experience(offer.getRequired_experience());
-        existingOffer.setRequired_degree(offer.getRequired_degree());
+        Offer.updateOfferValues(existingOffer, offer);
 
         // Enregistrez les modifications dans la base de données
         return offerService.saveOffer(existingOffer);

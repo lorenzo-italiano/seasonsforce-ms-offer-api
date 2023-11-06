@@ -44,6 +44,62 @@ public class Offer {
 
     private UUID creatorId;
 
+    public static Offer updateOfferValues(Offer current, Offer newValues) {
+        if (newValues.getJob_title() != null) {
+            current.setJob_title(newValues.getJob_title());
+        }
+        if (newValues.getJob_description() != null) {
+            current.setJob_description(newValues.getJob_description());
+        }
+        if (newValues.getContract_type() != null) {
+            current.setContract_type(newValues.getContract_type());
+        }
+        if (newValues.getCompanyId() != null) {
+            current.setCompanyId(newValues.getCompanyId());
+        }
+        if (newValues.getSalary() != 0) {
+            current.setSalary(newValues.getSalary());
+        }
+        if (newValues.getAddressId() != null) {
+            current.setAddressId(newValues.getAddressId());
+        }
+        if (newValues.getHours_per_week() != 0) {
+            current.setHours_per_week(newValues.getHours_per_week());
+        }
+        if (newValues.getBenefits() != null) {
+            current.setBenefits(newValues.getBenefits());
+        }
+        if (newValues.getOffer_language() != null) {
+            current.setOffer_language(newValues.getOffer_language());
+        }
+        if (newValues.getPublication_date() != null) {
+            current.setPublication_date(newValues.getPublication_date());
+        }
+        if (newValues.getOffer_status() != null) {
+            current.setOffer_status(newValues.getOffer_status());
+        }
+        if (newValues.getContact_information() != null) {
+            current.setContact_information(newValues.getContact_information());
+        }
+        if (newValues.getRequired_degree() != null) {
+            current.setRequired_degree(newValues.getRequired_degree());
+        }
+        if (newValues.getRequired_experience() != null) {
+            current.setRequired_experience(newValues.getRequired_experience());
+        }
+        if (newValues.getRequired_skills() != null) {
+            current.setRequired_skills(newValues.getRequired_skills());
+        }
+        if (newValues.getJobCategoryId() != null) {
+            current.setJobCategoryId(newValues.getJobCategoryId());
+        }
+        if (newValues.getCreatorId() != null) {
+            current.setCreatorId(newValues.getCreatorId());
+        }
+
+        return current;
+    }
+
     public UUID getId() {
         return id;
     }
