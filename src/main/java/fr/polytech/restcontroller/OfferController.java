@@ -3,6 +3,8 @@ package fr.polytech.restcontroller;
 import fr.polytech.model.OfferDetailDTO;
 import fr.polytech.service.OfferService;
 import fr.polytech.model.Offer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,8 +13,12 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
+//@CrossOrigin(origins = "http://localhost:19006", allowedHeaders = "*", allowCredentials = "true", exposedHeaders = {"Access-Control-Allow-Origin","Access-Control-Allow-Credentials"})
 @RequestMapping("/api/v1/offer")
 public class OfferController {
+
+    private final Logger logger = LoggerFactory.getLogger(OfferController.class);
+
     @Autowired
     private OfferService offerService;
 
@@ -21,10 +27,15 @@ public class OfferController {
         return offerService.getAllOffers();
     }
 
+    @GetMapping("/detailed")
+    public List<OfferDetailDTO> getAllDetailedOffers(@RequestHeader("Authorization") String token) {
+        return offerService.getAllOffersDetailed(token);
+    }
+
     @GetMapping("/{id}")
-    public ResponseEntity<OfferDetailDTO> getOfferById(@PathVariable UUID id) {
+    public ResponseEntity<OfferDetailDTO> getOfferById(@RequestHeader("Authorization") String token, @PathVariable UUID id) {
         try {
-            return ResponseEntity.ok(offerService.getDetailedOfferById(id));
+            return ResponseEntity.ok(offerService.getDetailedOfferById(id, token));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

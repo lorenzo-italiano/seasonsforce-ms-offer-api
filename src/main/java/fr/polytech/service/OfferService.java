@@ -2,6 +2,7 @@ package fr.polytech.service;
 
 import fr.polytech.model.*;
 import fr.polytech.repository.OfferRepository;
+import jakarta.ws.rs.NotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -32,23 +34,47 @@ public class OfferService {
         return offerRepository.findAll();
     }
 
+    public List<OfferDetailDTO> getAllOffersDetailed(String token) throws NotFoundException {
+        List<Offer> offers = offerRepository.findAll();
+        List<OfferDetailDTO> offerDetailDTOList = new ArrayList<>();
+
+        if (offers != null) {
+            token = token.substring(7);
+            // Fetching company infos from address microservice
+            for (Offer offer : offers) {
+                CompanyDTO companyDTO = fetchCompanyById(offer.getCompanyId(), token);
+
+                AddressDTO addressDTO = fetchAddressById(companyDTO.getAddressId(), token);
+
+                JobCategory jobCategory = jobCategoryService.getJobCategoryById(offer.getJobCategoryId());
+
+                OfferDetailDTO offerDetailDTO = OfferDetailDTO.getOfferDetailDTO(offer, companyDTO, addressDTO, jobCategory);
+
+                offerDetailDTOList.add(offerDetailDTO);
+            }
+
+            return offerDetailDTOList;
+        }
+        else {
+            throw new NotFoundException("Offer list not found");
+        }
+    }
+
     public Offer getOfferById(UUID id) {
         return offerRepository.findById(id).orElse(null);
     }
 
-    public OfferDetailDTO getDetailedOfferById(UUID id) throws Exception {
+    public OfferDetailDTO getDetailedOfferById(UUID id, String token) throws Exception {
 
         Offer offer = offerRepository.findById(id).orElse(null);
 
-//        String bearerToken = (String) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-//
-//        System.out.println(bearerToken);
-
         if (offer != null) {
-            // Fetching company infos from address microservice
-            CompanyDTO companyDTO = fetchCompanyById(offer.getCompanyId());
+            token = token.substring(7);
 
-            AddressDTO addressDTO = fetchAddressById(companyDTO.getAddressId());
+            // Fetching company infos from address microservice
+            CompanyDTO companyDTO = fetchCompanyById(offer.getCompanyId(), token);
+
+            AddressDTO addressDTO = fetchAddressById(companyDTO.getAddressId(), token);
 
             JobCategory jobCategory = jobCategoryService.getJobCategoryById(offer.getJobCategoryId());
 
@@ -77,9 +103,10 @@ public class OfferService {
     /*------------------------ OTHER METHODS ------------------------*/
     /*---------------------------------------------------------------*/
 
-    private CompanyDTO fetchCompanyById(UUID id) {
+    private CompanyDTO fetchCompanyById(UUID id, String token) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(token);
         HttpEntity<UUID> requestEntity = new HttpEntity<>(null, headers);
 
         // Sending the request to address microservice
@@ -98,9 +125,10 @@ public class OfferService {
         return responseEntity.getBody();
     }
 
-    private AddressDTO fetchAddressById(UUID id) {
+    private AddressDTO fetchAddressById(UUID id, String token) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(token);
         HttpEntity<UUID> requestEntity = new HttpEntity<>(null, headers);
 
         // Sending the request to address microservice
