@@ -51,19 +51,19 @@ public class OfferController {
         return offerService.saveOffer(offer);
     }
 
-    @PutMapping("/{id}")
-    public Offer updateOffer(@PathVariable UUID id, @RequestBody Offer offer) {
+    @PutMapping("/")
+    public Offer updateOffer(@RequestBody Offer offer) {
         // Vérifiez si l'utilisateur avec l'ID spécifié existe
-        Offer existingOffer = offerService.getOfferById(id);
+        Offer existingOffer = offerService.getOfferById(offer.getId());
         if (existingOffer == null) {
             return null; // Vous pouvez gérer cela de manière appropriée, par exemple, en renvoyant une erreur 404
         }
 
         // Mettez à jour les propriétés de l'utilisateur existant avec les données du nouveau utilisateur
-        Offer.updateOfferValues(existingOffer, offer);
+        Offer newOffer = Offer.updateOfferValues(existingOffer, offer);
 
         // Enregistrez les modifications dans la base de données
-        return offerService.saveOffer(existingOffer);
+        return offerService.saveOffer(newOffer);
     }
 
     @DeleteMapping("/{id}")

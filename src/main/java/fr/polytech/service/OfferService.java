@@ -3,6 +3,8 @@ package fr.polytech.service;
 import fr.polytech.model.*;
 import fr.polytech.repository.OfferRepository;
 import jakarta.ws.rs.NotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,6 +18,8 @@ import java.util.UUID;
 
 @Service
 public class OfferService {
+
+    private Logger logger = LoggerFactory.getLogger(OfferService.class);
 
     @Autowired
     private OfferRepository offerRepository;
@@ -42,14 +46,19 @@ public class OfferService {
             token = token.substring(7);
             // Fetching company infos from address microservice
             for (Offer offer : offers) {
+                logger.info("before fetching company");
                 CompanyDTO companyDTO = fetchCompanyById(offer.getCompanyId(), token);
 
-                AddressDTO addressDTO = fetchAddressById(companyDTO.getAddressId(), token);
+                logger.info("before fetching address");
+                AddressDTO addressDTO = fetchAddressById(offer.getAddressId(), token);
 
+                logger.info("before fetching job category");
                 JobCategory jobCategory = jobCategoryService.getJobCategoryById(offer.getJobCategoryId());
 
+                logger.info("before creating offer detail dto");
                 OfferDetailDTO offerDetailDTO = OfferDetailDTO.getOfferDetailDTO(offer, companyDTO, addressDTO, jobCategory);
 
+                logger.info("before adding offer detail dto to list");
                 offerDetailDTOList.add(offerDetailDTO);
             }
 
