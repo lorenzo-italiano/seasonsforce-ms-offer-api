@@ -1,5 +1,6 @@
 package fr.polytech.service;
 
+import com.auth0.jwt.JWT;
 import fr.polytech.model.*;
 import fr.polytech.repository.OfferRepository;
 import jakarta.ws.rs.NotFoundException;
@@ -100,6 +101,16 @@ public class OfferService {
         return offerRepository.findByCompanyId(id);
     }
 
+    public Offer createOffer(Offer offer, String token){
+        String tokenToSend = token.split(" ")[1];
+
+        String userId = getUserIdFromToken(tokenToSend);
+
+        offer.setCreatorId(UUID.fromString(userId));
+
+        return offerRepository.save(offer);
+    }
+
     public Offer saveOffer(Offer offer) {
         return offerRepository.save(offer);
     }
@@ -154,6 +165,54 @@ public class OfferService {
         }
 
         return responseEntity.getBody();
+    }
+
+    private RecruiterDTO fetchRecruiter(UUID recruiterId, HttpHeaders headers) {
+        logger.info("Fetching recruiter");
+        String url = "lb://user-api/api/v1/user/" + recruiterId.toString();
+        logger.info(recruiterId.toString());
+        HttpEntity<String> entity = new HttpEntity<>(null, headers);
+        ResponseEntity<RecruiterDTO> response = restTemplate.exchange(url, HttpMethod.GET, entity, RecruiterDTO.class);
+        RecruiterDTO recruiter = response.getBody();
+        if (recruiter == null || !recruiter.getRole().equals("recruiter")) {
+            throw new HttpClientErrorException(HttpStatus.FORBIDDEN, "User is not a recruiter");
+        }
+        return recruiter;
+    }
+
+    private String getUserIdFromToken(String token) {
+        return JWT.decode(token).getClaim("sub").asString();
+    }
+
+    public boolean isRecruiterInCompany(UUID companyId, String token) {
+        String tokenToSend = token.split(" ")[1];
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(tokenToSend);
+
+        String userId = getUserIdFromToken(tokenToSend);
+
+        RecruiterDTO recruiterDTO = fetchRecruiter(UUID.fromString(userId), headers);
+
+        if (recruiterDTO.getCompanyId() == null) {
+            return false;
+        }
+        else {
+            return recruiterDTO.getCompanyId().equals(companyId);
+        }
+    }
+
+    public boolean isRecruiterOwnerOfOffer(Offer offer, String token) {
+        String tokenToSend = token.split(" ")[1];
+
+        String userId = getUserIdFromToken(tokenToSend);
+
+        if(userId == null || userId.isEmpty()) {
+            return false;
+        }
+
+        return offer.getCreatorId().equals(UUID.fromString(userId));
     }
 
     // TODO findSimilarOffer ?

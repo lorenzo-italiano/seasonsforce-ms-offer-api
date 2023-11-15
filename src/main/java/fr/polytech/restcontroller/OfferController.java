@@ -1,12 +1,19 @@
 package fr.polytech.restcontroller;
 
+import fr.polytech.annotation.IsAdminOrCandidate;
+import fr.polytech.annotation.IsAdminOrRecruiterAndOwnerOfRessource;
+import fr.polytech.annotation.IsCandidateOrIsAdminOrIsRecruiterAndInOfferCompany;
+import fr.polytech.annotation.IsRecruiter;
 import fr.polytech.model.OfferDetailDTO;
 import fr.polytech.service.OfferService;
 import fr.polytech.model.Offer;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.Produces;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,37 +29,50 @@ public class OfferController {
     @Autowired
     private OfferService offerService;
 
+    @Produces("application/json")
+    @IsAdminOrCandidate
     @GetMapping("/")
     public List<Offer> getAllOffers() {
         return offerService.getAllOffers();
     }
 
+    @Produces("application/json")
+    @IsAdminOrCandidate
     @GetMapping("/detailed")
     public List<OfferDetailDTO> getAllDetailedOffers(@RequestHeader("Authorization") String token) {
         return offerService.getAllOffersDetailed(token);
     }
 
+    @Produces("application/json")
     @GetMapping("/{id}")
     public ResponseEntity<OfferDetailDTO> getOfferById(@RequestHeader("Authorization") String token, @PathVariable UUID id) {
         try {
             return ResponseEntity.ok(offerService.getDetailedOfferById(id, token));
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            return ResponseEntity.badRequest().build();
         }
     }
 
+    @Produces("application/json")
+    @IsCandidateOrIsAdminOrIsRecruiterAndInOfferCompany
     @GetMapping("/company/{id}")
-    public List<Offer> getOfferListByCompanyId(@PathVariable UUID id) {
+    public List<Offer> getOfferListByCompanyId(@RequestHeader("Authorization") String token, @PathVariable UUID id) {
         return offerService.getOfferListByCompanyId(id);
     }
 
+    @Produces("application/json")
+    @Consumes("application/json")
+    @IsRecruiter
     @PostMapping("/")
-    public Offer createOffer(@RequestBody Offer offer) {
-        return offerService.saveOffer(offer);
+    public Offer createOffer(@RequestHeader("Authorization") String token, @RequestBody Offer offer) {
+        return offerService.createOffer(offer, token);
     }
 
+    @Consumes("application/json")
+    @Produces("application/json")
+    @IsAdminOrRecruiterAndOwnerOfRessource
     @PutMapping("/")
-    public Offer updateOffer(@RequestBody Offer offer) {
+    public Offer updateOffer(@RequestHeader("Authorization") String token, @RequestBody Offer offer) {
         // Vérifiez si l'utilisateur avec l'ID spécifié existe
         Offer existingOffer = offerService.getOfferById(offer.getId());
         if (existingOffer == null) {
@@ -66,8 +86,9 @@ public class OfferController {
         return offerService.saveOffer(newOffer);
     }
 
+    @IsAdminOrRecruiterAndOwnerOfRessource
     @DeleteMapping("/{id}")
-    public void deleteUser(@PathVariable UUID id) {
+    public void deleteUser(@RequestHeader("Authorization") String token, @PathVariable UUID id) {
         offerService.deleteOffer(id);
     }
 }
