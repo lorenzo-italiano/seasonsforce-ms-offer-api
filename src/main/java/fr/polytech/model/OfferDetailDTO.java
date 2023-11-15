@@ -30,6 +30,9 @@ public class OfferDetailDTO {
     private List<String> required_skills;
     private JobCategory jobCategory;
     private UUID creatorId;
+    private UUID recruitedId;
+    private Date startDate;
+    private Date endDate;
 
     public static OfferDetailDTO getOfferDetailDTO(Offer offer, CompanyDTO companyDTO, AddressDTO addressDTO, JobCategory jobCategory) {
         OfferDetailDTO offerDetailDTO = new OfferDetailDTO();
@@ -52,6 +55,9 @@ public class OfferDetailDTO {
         offerDetailDTO.setAddress(addressDTO);
         offerDetailDTO.setJobCategory(jobCategory);
         offerDetailDTO.setCreatorId(offer.getCreatorId());
+        offerDetailDTO.setRecruitedId(offer.getRecruitedId());
+        offerDetailDTO.setStartDate(offer.getStartDate());
+        offerDetailDTO.setEndDate(offer.getEndDate());
 
         return offerDetailDTO;
     }
@@ -198,5 +204,29 @@ public class OfferDetailDTO {
 
     public void setCreatorId(UUID creatorId) {
         this.creatorId = creatorId;
+    }
+
+    public UUID getRecruitedId() {
+        return recruitedId;
+    }
+
+    public void setRecruitedId(UUID recruitedId) {
+        this.recruitedId = recruitedId;
+    }
+
+    public Date getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(Date startDate) {
+        this.startDate = startDate;
+    }
+
+    public Date getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(Date endDate) {
+        this.endDate = endDate;
     }
 }

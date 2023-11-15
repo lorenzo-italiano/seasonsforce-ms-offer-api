@@ -44,6 +44,12 @@ public class Offer {
 
     private UUID creatorId;
 
+    private UUID recruitedId;
+
+    private Date startDate;
+
+    private Date endDate;
+
     public static Offer updateOfferValues(Offer current, Offer newValues) {
         if (newValues.getJob_title() != null) {
             current.setJob_title(newValues.getJob_title());
@@ -95,6 +101,15 @@ public class Offer {
         }
         if (newValues.getCreatorId() != null) {
             current.setCreatorId(newValues.getCreatorId());
+        }
+        if (newValues.getRecruitedId() != null) {
+            current.setRecruitedId(newValues.getRecruitedId());
+        }
+        if (newValues.getStartDate() != null) {
+            current.setStartDate(newValues.getStartDate());
+        }
+        if (newValues.getEndDate() != null) {
+            current.setEndDate(newValues.getEndDate());
         }
 
         return current;
@@ -242,5 +257,29 @@ public class Offer {
 
     public void setCreatorId(UUID creatorId) {
         this.creatorId = creatorId;
+    }
+
+    public UUID getRecruitedId() {
+        return recruitedId;
+    }
+
+    public void setRecruitedId(UUID recruitedId) {
+        this.recruitedId = recruitedId;
+    }
+
+    public Date getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(Date startDate) {
+        this.startDate = startDate;
+    }
+
+    public Date getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(Date endDate) {
+        this.endDate = endDate;
     }
 }
