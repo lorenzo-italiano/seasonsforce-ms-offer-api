@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -84,7 +83,7 @@ public class OfferService {
             // Fetching company infos from address microservice
             CompanyDTO companyDTO = fetchCompanyById(offer.getCompanyId(), token);
 
-            AddressDTO addressDTO = fetchAddressById(companyDTO.getAddressId(), token);
+            AddressDTO addressDTO = fetchAddressById(offer.getAddressId(), token);
 
             JobCategory jobCategory = jobCategoryService.getJobCategoryById(offer.getJobCategoryId());
 

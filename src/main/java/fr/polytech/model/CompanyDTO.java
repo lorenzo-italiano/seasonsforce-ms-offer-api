@@ -9,7 +9,7 @@ public class CompanyDTO {
     private String logoUrl;
     private String description;
     private String employeesNumberRange;
-    private UUID addressId;
+    private List<UUID> addressId;
     private String siretNumber;
     private List<String> documentsUrl;
 
@@ -53,11 +53,11 @@ public class CompanyDTO {
         this.employeesNumberRange = employeesNumberRange;
     }
 
-    public UUID getAddressId() {
+    public List<UUID> getAddressId() {
         return addressId;
     }
 
-    public void setAddressId(UUID addressId) {
+    public void setAddressId(List<UUID> addressId) {
         this.addressId = addressId;
     }
 
