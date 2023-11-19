@@ -40,33 +40,38 @@ public class OfferService {
 
     public List<OfferDetailDTO> getAllOffersDetailed(String token) throws NotFoundException {
         List<Offer> offers = offerRepository.findAll();
-        List<OfferDetailDTO> offerDetailDTOList = new ArrayList<>();
 
         if (offers != null) {
             token = token.substring(7);
-            // Fetching company infos from address microservice
-            for (Offer offer : offers) {
-                logger.info("before fetching company");
-                CompanyDTO companyDTO = fetchCompanyById(offer.getCompanyId(), token);
 
-                logger.info("before fetching address");
-                AddressDTO addressDTO = fetchAddressById(offer.getAddressId(), token);
-
-                logger.info("before fetching job category");
-                JobCategory jobCategory = jobCategoryService.getJobCategoryById(offer.getJobCategoryId());
-
-                logger.info("before creating offer detail dto");
-                OfferDetailDTO offerDetailDTO = OfferDetailDTO.getOfferDetailDTO(offer, companyDTO, addressDTO, jobCategory);
-
-                logger.info("before adding offer detail dto to list");
-                offerDetailDTOList.add(offerDetailDTO);
-            }
-
-            return offerDetailDTOList;
+            return getOfferListDetails(offers, token);
         }
         else {
             throw new NotFoundException("Offer list not found");
         }
+    }
+
+    public List<OfferDetailDTO> getOfferListDetails(List<Offer> offerList, String token) {
+        List<OfferDetailDTO> offerDetailDTOList = new ArrayList<>();
+
+        for (Offer offer : offerList) {
+            logger.info("before fetching company");
+            CompanyDTO companyDTO = fetchCompanyById(offer.getCompanyId(), token);
+
+            logger.info("before fetching address");
+            AddressDTO addressDTO = fetchAddressById(offer.getAddressId(), token);
+
+            logger.info("before fetching job category");
+            JobCategory jobCategory = jobCategoryService.getJobCategoryById(offer.getJobCategoryId());
+
+            logger.info("before creating offer detail dto");
+            OfferDetailDTO offerDetailDTO = OfferDetailDTO.getOfferDetailDTO(offer, companyDTO, addressDTO, jobCategory);
+
+            logger.info("before adding offer detail dto to list");
+            offerDetailDTOList.add(offerDetailDTO);
+        }
+
+        return offerDetailDTOList;
     }
 
     public Offer getOfferById(UUID id) {
@@ -96,19 +101,21 @@ public class OfferService {
         }
     }
 
-    public List<Offer> getOfferListByCompanyId(UUID id) {
-        return offerRepository.findByCompanyId(id);
+    public List<OfferDetailDTO> getDetailedOfferListByCompanyId(UUID id, String token) {
+        List<Offer> offerList = offerRepository.findByCompanyId(id);
+        token = token.split(" ")[1];
+        return getOfferListDetails(offerList, token);
     }
 
-    public Offer createOffer(Offer offer, String token){
-        String tokenToSend = token.split(" ")[1];
-
-        String userId = getUserIdFromToken(tokenToSend);
-
-        offer.setCreatorId(UUID.fromString(userId));
-
-        return offerRepository.save(offer);
-    }
+//    public Offer createOffer(Offer offer, String token){
+//        String tokenToSend = token.split(" ")[1];
+//
+//        String userId = getUserIdFromToken(tokenToSend);
+//
+//        offer.setCreatorId(UUID.fromString(userId));
+//
+//        return offerRepository.save(offer);
+//    }
 
     public Offer saveOffer(Offer offer) {
         return offerRepository.save(offer);
@@ -208,6 +215,24 @@ public class OfferService {
         String userId = getUserIdFromToken(tokenToSend);
 
         if(userId == null || userId.isEmpty()) {
+            return false;
+        }
+
+        return offer.getCreatorId().equals(UUID.fromString(userId));
+    }
+
+    public boolean isRecruiterOwnerOfOfferById(UUID id, String token) {
+        String tokenToSend = token.split(" ")[1];
+
+        Offer offer = offerRepository.findById(id).orElse(null);
+
+        String userId = getUserIdFromToken(tokenToSend);
+
+        if(userId == null || userId.isEmpty()) {
+            return false;
+        }
+
+        if (offer == null) {
             return false;
         }
 

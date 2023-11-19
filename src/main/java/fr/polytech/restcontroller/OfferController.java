@@ -1,9 +1,6 @@
 package fr.polytech.restcontroller;
 
-import fr.polytech.annotation.IsAdminOrCandidate;
-import fr.polytech.annotation.IsAdminOrRecruiterAndOwnerOfRessource;
-import fr.polytech.annotation.IsCandidateOrIsAdminOrIsRecruiterAndInOfferCompany;
-import fr.polytech.annotation.IsRecruiter;
+import fr.polytech.annotation.*;
 import fr.polytech.model.OfferDetailDTO;
 import fr.polytech.service.OfferService;
 import fr.polytech.model.Offer;
@@ -56,16 +53,20 @@ public class OfferController {
     @Produces("application/json")
     @IsCandidateOrIsAdminOrIsRecruiterAndInOfferCompany
     @GetMapping("/company/{id}")
-    public List<Offer> getOfferListByCompanyId(@RequestHeader("Authorization") String token, @PathVariable UUID id) {
-        return offerService.getOfferListByCompanyId(id);
+    public ResponseEntity<List<OfferDetailDTO>> getOfferListByCompanyId(@RequestHeader("Authorization") String token, @PathVariable UUID id) {
+        try {
+            return ResponseEntity.ok(offerService.getDetailedOfferListByCompanyId(id, token));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @Produces("application/json")
     @Consumes("application/json")
     @IsRecruiter
     @PostMapping("/")
-    public Offer createOffer(@RequestHeader("Authorization") String token, @RequestBody Offer offer) {
-        return offerService.createOffer(offer, token);
+    public Offer createOffer(@RequestBody Offer offer) {
+        return offerService.saveOffer(offer);
     }
 
     @Consumes("application/json")
@@ -86,7 +87,7 @@ public class OfferController {
         return offerService.saveOffer(newOffer);
     }
 
-    @IsAdminOrRecruiterAndOwnerOfRessource
+    @IsAdminOrRecruiterAndOwnerOfRessourceById
     @DeleteMapping("/{id}")
     public void deleteUser(@RequestHeader("Authorization") String token, @PathVariable UUID id) {
         offerService.deleteOffer(id);
