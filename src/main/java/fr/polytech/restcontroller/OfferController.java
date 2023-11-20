@@ -9,6 +9,7 @@ import jakarta.ws.rs.Produces;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,21 +25,21 @@ public class OfferController {
     @Autowired
     private OfferService offerService;
 
-    @Produces("application/json")
+    @Produces(MediaType.APPLICATION_JSON_VALUE)
     @IsAdminOrCandidate
     @GetMapping("/")
     public ResponseEntity<List<Offer>> getAllOffers() {
         return ResponseEntity.ok(offerService.getAllOffers());
     }
 
-    @Produces("application/json")
+    @Produces(MediaType.APPLICATION_JSON_VALUE)
     @IsAdminOrCandidate
     @GetMapping("/detailed")
     public ResponseEntity<List<OfferDetailDTO>> getAllDetailedOffers(@RequestHeader("Authorization") String token) {
         return ResponseEntity.ok(offerService.getAllOffersDetailed(token));
     }
 
-    @Produces("application/json")
+    @Produces(MediaType.APPLICATION_JSON_VALUE)
     @GetMapping("/{id}")
     public ResponseEntity<OfferDetailDTO> getOfferById(@RequestHeader("Authorization") String token, @PathVariable UUID id) {
         try {
@@ -48,7 +49,7 @@ public class OfferController {
         }
     }
 
-    @Produces("application/json")
+    @Produces(MediaType.APPLICATION_JSON_VALUE)
     @IsCandidateOrIsAdminOrIsRecruiterAndInOfferCompany
     @GetMapping("/company/{id}")
     public ResponseEntity<List<OfferDetailDTO>> getOfferListByCompanyId(@RequestHeader("Authorization") String token, @PathVariable UUID id) {
@@ -59,8 +60,8 @@ public class OfferController {
         }
     }
 
-    @Produces("application/json")
-    @Consumes("application/json")
+    @Produces(MediaType.APPLICATION_JSON_VALUE)
+    @Consumes(MediaType.APPLICATION_JSON_VALUE)
     @IsRecruiter
     @PostMapping("/")
     public ResponseEntity<Offer> createOffer(@RequestBody Offer offer) {
@@ -71,8 +72,8 @@ public class OfferController {
         }
     }
 
-    @Consumes("application/json")
-    @Produces("application/json")
+    @Consumes(MediaType.APPLICATION_JSON_VALUE)
+    @Produces(MediaType.APPLICATION_JSON_VALUE)
     @IsAdminOrRecruiterAndOwnerOfRessource
     @PutMapping("/")
     public ResponseEntity<Offer> updateOffer(@RequestHeader("Authorization") String token, @RequestBody Offer offer) {
@@ -84,6 +85,40 @@ public class OfferController {
         Offer newOffer = Offer.updateOfferValues(existingOffer, offer);
 
         return ResponseEntity.ok(offerService.saveOffer(newOffer));
+    }
+
+    @Produces(MediaType.APPLICATION_JSON_VALUE)
+    @Consumes(MediaType.APPLICATION_JSON_VALUE)
+    @IsRecruiterAndOwnerOfRessourceById
+    @PatchMapping("/{id}/recruited/add/{recruitedId}")
+    public ResponseEntity<Offer> addRecruitedCandidate(@RequestHeader("Authorization") String token, @PathVariable("id") UUID id, @PathVariable("recruitedId") UUID recruitedId) {
+        Offer existingOffer = offerService.getOfferById(id);
+
+        if (existingOffer == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        existingOffer.setRecruitedId(recruitedId);
+        existingOffer.setOffer_status("RECRUITED");
+
+        return ResponseEntity.ok(offerService.saveOffer(existingOffer));
+    }
+
+    @Produces(MediaType.APPLICATION_JSON_VALUE)
+    @Consumes(MediaType.APPLICATION_JSON_VALUE)
+    @IsRecruiterAndOwnerOfRessourceById
+    @PatchMapping("/{id}/recruited/remove/")
+    public ResponseEntity<Offer> removeRecruitedCandidate(@RequestHeader("Authorization") String token, @PathVariable("id") UUID id) {
+        Offer existingOffer = offerService.getOfferById(id);
+
+        if (existingOffer == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        existingOffer.setRecruitedId(null);
+        existingOffer.setOffer_status("IN_PROGRESS");
+
+        return ResponseEntity.ok(offerService.saveOffer(existingOffer));
     }
 
     @IsAdminOrRecruiterAndOwnerOfRessourceById
