@@ -1,5 +1,6 @@
 package fr.polytech.restcontroller;
 
+import fr.polytech.annotation.IsRecruiter;
 import fr.polytech.model.JobCategory;
 import fr.polytech.service.JobCategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,7 @@ public class JobCategoryController {
         return ResponseEntity.ok(jobCategoryService.getAllJobCategories());
     }
 
+    @IsRecruiter
     @PostMapping("/")
     public ResponseEntity<JobCategory> createJobCategory(@RequestBody JobCategory jobCategory) {
         return ResponseEntity.ok(jobCategoryService.createJobCategory(jobCategory));
