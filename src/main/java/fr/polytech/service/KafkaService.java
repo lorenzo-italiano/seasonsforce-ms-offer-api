@@ -22,6 +22,12 @@ public class KafkaService {
         this.kafkaTemplate = kafkaTemplate;
     }
 
+    /**
+     * Send a message to the Kafka topic
+     *
+     * @param notification Notification to send
+     * @throws HttpClientErrorException If the notification cannot be serialized
+     */
     public void sendMessage(NotificationDTO notification) throws HttpClientErrorException {
         try {
             String message = objectMapper.writeValueAsString(notification);
