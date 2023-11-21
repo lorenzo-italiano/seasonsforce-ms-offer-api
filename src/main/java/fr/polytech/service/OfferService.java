@@ -21,14 +21,21 @@ public class OfferService {
 
     private Logger logger = LoggerFactory.getLogger(OfferService.class);
 
-    @Autowired
     private OfferRepository offerRepository;
 
-    @Autowired
     private JobCategoryService jobCategoryService;
 
-    @Autowired
     private RestTemplate restTemplate;
+
+    private KafkaService kafkaService;
+
+    @Autowired
+    public OfferService(OfferRepository offerRepository, JobCategoryService jobCategoryService, RestTemplate restTemplate, KafkaService kafkaService) {
+        this.offerRepository = offerRepository;
+        this.jobCategoryService = jobCategoryService;
+        this.restTemplate = restTemplate;
+        this.kafkaService = kafkaService;
+    }
 
     /*---------------------------------------------------------------*/
     /*------------------------ CRUD METHODS -------------------------*/
@@ -45,8 +52,7 @@ public class OfferService {
             token = token.substring(7);
 
             return getOfferListDetails(offers, token);
-        }
-        else {
+        } else {
             throw new NotFoundException("Offer list not found");
         }
     }
@@ -95,8 +101,7 @@ public class OfferService {
             OfferDetailDTO offerDetailDTO = OfferDetailDTO.getOfferDetailDTO(offer, companyDTO, addressDTO, jobCategory);
 
             return offerDetailDTO;
-        }
-        else {
+        } else {
             throw new Exception("Offer not found");
         }
     }
@@ -118,7 +123,11 @@ public class OfferService {
 //    }
 
     public Offer saveOffer(Offer offer) {
-        return offerRepository.save(offer);
+        logger.info("Saving offer");
+        Offer createdOffer = offerRepository.save(offer);
+        NotificationDTO notificationDTO = createNotification(createdOffer, "Offer created");
+        kafkaService.sendMessage(notificationDTO);
+        return createdOffer;
     }
 
     public void deleteOffer(UUID id) {
@@ -143,7 +152,7 @@ public class OfferService {
                 CompanyDTO.class
         );
 
-        if(responseEntity.getStatusCode() != HttpStatus.OK){
+        if (responseEntity.getStatusCode() != HttpStatus.OK) {
             // If the status code is not 200, then throw the exception to the client
             throw new HttpClientErrorException(responseEntity.getStatusCode());
         }
@@ -165,7 +174,7 @@ public class OfferService {
                 AddressDTO.class
         );
 
-        if(responseEntity.getStatusCode() != HttpStatus.OK){
+        if (responseEntity.getStatusCode() != HttpStatus.OK) {
             // If the status code is not 200, then throw the exception to the client
             throw new HttpClientErrorException(responseEntity.getStatusCode());
         }
@@ -203,8 +212,7 @@ public class OfferService {
 
         if (recruiterDTO.getCompanyId() == null) {
             return false;
-        }
-        else {
+        } else {
             return recruiterDTO.getCompanyId().equals(companyId);
         }
     }
@@ -214,7 +222,7 @@ public class OfferService {
 
         String userId = getUserIdFromToken(tokenToSend);
 
-        if(userId == null || userId.isEmpty()) {
+        if (userId == null || userId.isEmpty()) {
             return false;
         }
 
@@ -228,7 +236,7 @@ public class OfferService {
 
         String userId = getUserIdFromToken(tokenToSend);
 
-        if(userId == null || userId.isEmpty()) {
+        if (userId == null || userId.isEmpty()) {
             return false;
         }
 
@@ -237,6 +245,23 @@ public class OfferService {
         }
 
         return offer.getCreatorId().equals(UUID.fromString(userId));
+    }
+
+    /**
+     * Create a notification for the offer creator.
+     *
+     * @param offer   Offer
+     * @param message Message
+     * @return Notification
+     */
+    private NotificationDTO createNotification(Offer offer, String message) {
+        NotificationDTO notificationDTO = new NotificationDTO();
+        notificationDTO.setCategory(NotificationCategory.OFFER);
+        notificationDTO.setObjectId(offer.getId());
+        notificationDTO.setMessage(message);
+        notificationDTO.setDate(offer.getPublication_date());
+        notificationDTO.setReceiverId(offer.getCreatorId());
+        return notificationDTO;
     }
 
     // TODO findSimilarOffer ?
