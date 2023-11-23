@@ -8,11 +8,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
@@ -262,6 +264,36 @@ public class OfferService {
         notificationDTO.setDate(offer.getPublication_date());
         notificationDTO.setReceiverId(offer.getCreatorId());
         return notificationDTO;
+    }
+
+    // FOR TEST PURPOSES
+    @Scheduled(cron = "*/5 * * * * *")
+    // TODO change to right cron for production
+//    @Scheduled(cron = "0 0 2 * * *")
+    public void settingCompletedOffers() {
+        logger.info("Checking for completed offers");
+        List<Offer> offerList = offerRepository.findAll();
+
+        for (Offer offer : offerList) {
+            if (offer.getEndDate().toInstant().isBefore(java.time.Instant.now()) && offer.getOffer_status().equals(OfferStatus.RECRUITED.toString())) {
+                logger.info("Found completed offer");
+
+                offer.setOffer_status(OfferStatus.COMPLETED.toString());
+
+                ExperienceDTOWithUserId experienceDTOWithUserId = new ExperienceDTOWithUserId();
+                experienceDTOWithUserId.setUserId(offer.getRecruitedId());
+                experienceDTOWithUserId.setCompanyId(offer.getCompanyId());
+                experienceDTOWithUserId.setStartDate(offer.getStartDate());
+                experienceDTOWithUserId.setEndDate(offer.getEndDate());
+                experienceDTOWithUserId.setJobTitle(offer.getJob_title());
+                experienceDTOWithUserId.setJobCategoryId(offer.getJobCategoryId());
+
+                logger.info("Sending experience to kafka");
+                kafkaService.sendExperience(experienceDTOWithUserId);
+
+                offerRepository.save(offer);
+            }
+        }
     }
 
     // TODO findSimilarOffer ?
