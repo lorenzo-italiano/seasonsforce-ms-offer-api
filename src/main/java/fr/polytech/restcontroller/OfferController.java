@@ -64,6 +64,17 @@ public class OfferController {
     }
 
     @Produces(MediaType.APPLICATION_JSON_VALUE)
+    @IsRecruiter
+    @GetMapping("/creator/{id}")
+    public ResponseEntity<List<OfferDetailDTO>> getOfferByCreatorId(@PathVariable UUID id, @RequestHeader("Authorization") String token) {
+        try {
+            return ResponseEntity.ok(offerService.getOfferByCreatorId(id, token));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @Produces(MediaType.APPLICATION_JSON_VALUE)
     @IsCandidateOrIsAdminOrIsRecruiterAndInOfferCompany
     @GetMapping("/company/{id}")
     public ResponseEntity<List<OfferDetailDTO>> getOfferListByCompanyId(@RequestHeader("Authorization") String token, @PathVariable UUID id) {

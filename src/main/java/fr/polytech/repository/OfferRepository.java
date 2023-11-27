@@ -13,4 +13,7 @@ import java.util.UUID;
 public interface OfferRepository extends JpaRepository<Offer, UUID> {
     @Query(value = "SELECT o FROM Offer o WHERE o.companyId = :companyId")
     List<Offer> findByCompanyId(@Param("companyId") UUID companyId);
+
+    @Query(value = "SELECT o FROM Offer o WHERE o.creatorId = :creatorId")
+    List<Offer> findByCreatorId(@Param("creatorId") UUID creatorId);
 }

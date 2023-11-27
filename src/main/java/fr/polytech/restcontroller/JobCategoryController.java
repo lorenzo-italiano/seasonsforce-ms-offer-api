@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/job-category")
@@ -19,6 +20,16 @@ public class JobCategoryController {
     @GetMapping("/")
     public ResponseEntity<List<JobCategory>> getAllJobCategories() {
         return ResponseEntity.ok(jobCategoryService.getAllJobCategories());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<JobCategory> getJobCategoryById(@PathVariable("id") UUID id) {
+        try {
+            return ResponseEntity.ok(jobCategoryService.getJobCategoryById(id));
+        }
+        catch (Exception e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     @IsRecruiter

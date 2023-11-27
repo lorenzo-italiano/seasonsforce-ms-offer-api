@@ -296,6 +296,26 @@ public class OfferService {
         }
     }
 
+    public List<OfferDetailDTO> getOfferByCreatorId(UUID id, String token) {
+        List<Offer> offerList = offerRepository.findByCreatorId(id);
+
+        logger.info("Offer list size: " + offerList.toString());
+
+        List<OfferDetailDTO> offerDetailDTOList = new ArrayList<>();
+
+        for (Offer offer : offerList) {
+            OfferDetailDTO offerDetailDTO;
+            try {
+                offerDetailDTO = getDetailedOfferById(offer.getId(), token);
+                offerDetailDTOList.add(offerDetailDTO);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        return offerDetailDTOList;
+    }
+
     // TODO findSimilarOffer ?
 }
 

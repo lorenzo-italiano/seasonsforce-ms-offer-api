@@ -23,7 +23,11 @@ public class JobCategoryService {
     }
 
     public JobCategory getJobCategoryById(UUID id) {
-        return jobCategoryRepository.findById(id).orElse(null);
+        JobCategory jobCategory = jobCategoryRepository.findById(id).orElse(null);
+        if (jobCategory == null) {
+            throw new RuntimeException("Job category not found");
+        }
+        return jobCategory;
     }
 
     public JobCategory updateJobCategory(JobCategory jobCategory) {
