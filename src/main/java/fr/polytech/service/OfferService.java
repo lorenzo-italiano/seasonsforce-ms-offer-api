@@ -171,6 +171,11 @@ public class OfferService {
         return createdOffer;
     }
 
+    /**
+     * Delete an offer.
+     *
+     * @param id Offer id
+     */
     public void deleteOffer(UUID id) {
         offerRepository.deleteById(id);
     }
