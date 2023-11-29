@@ -14,22 +14,25 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
 @Service
 public class OfferService {
 
-    private Logger logger = LoggerFactory.getLogger(OfferService.class);
+    private final Logger logger = LoggerFactory.getLogger(OfferService.class);
 
-    private OfferRepository offerRepository;
+    private final OfferRepository offerRepository;
 
-    private JobCategoryService jobCategoryService;
+    private final JobCategoryService jobCategoryService;
 
-    private RestTemplate restTemplate;
+    private final RestTemplate restTemplate;
 
-    private KafkaService kafkaService;
+    private final KafkaService kafkaService;
+
+    private final String COMPANY_API_URI = "COMPANY_API_URI";
+    private final String ADDRESS_API_URI = "ADDRESS_API_URI";
+    private final String USER_API_URI = "USER_API_URI";
 
     @Autowired
     public OfferService(OfferRepository offerRepository, JobCategoryService jobCategoryService, RestTemplate restTemplate, KafkaService kafkaService) {
@@ -43,10 +46,22 @@ public class OfferService {
     /*------------------------ CRUD METHODS -------------------------*/
     /*---------------------------------------------------------------*/
 
+    /**
+     * Create an offer.
+     *
+     * @return The created offer.
+     */
     public List<Offer> getAllOffers() {
         return offerRepository.findAll();
     }
 
+    /**
+     * Get all offers with details.
+     *
+     * @param token Token
+     * @return A list of offers.
+     * @throws NotFoundException If the offer list is not found.
+     */
     public List<OfferDetailDTO> getAllOffersDetailed(String token) throws NotFoundException {
         List<Offer> offers = offerRepository.findAll();
 
@@ -59,6 +74,13 @@ public class OfferService {
         }
     }
 
+    /**
+     * Get all offers with details.
+     *
+     * @param offerList Offer list
+     * @param token     Token
+     * @return A list of offers.
+     */
     public List<OfferDetailDTO> getOfferListDetails(List<Offer> offerList, String token) {
         List<OfferDetailDTO> offerDetailDTOList = new ArrayList<>();
 
@@ -82,10 +104,24 @@ public class OfferService {
         return offerDetailDTOList;
     }
 
+    /**
+     * Get an offer by its id.
+     *
+     * @param id The id of the offer.
+     * @return The offer.
+     */
     public Offer getOfferById(UUID id) {
         return offerRepository.findById(id).orElse(null);
     }
 
+    /**
+     * Get an offer by its id with details.
+     *
+     * @param id    The id of the offer.
+     * @param token Token of the user.
+     * @return The offer.
+     * @throws Exception If the offer is not found.
+     */
     public OfferDetailDTO getDetailedOfferById(UUID id, String token) throws Exception {
 
         Offer offer = offerRepository.findById(id).orElse(null);
@@ -108,22 +144,25 @@ public class OfferService {
         }
     }
 
+    /**
+     * Get all offers by company id.
+     *
+     * @param id    The id of the company.
+     * @param token Token of the user.
+     * @return A list of offers.
+     */
     public List<OfferDetailDTO> getDetailedOfferListByCompanyId(UUID id, String token) {
         List<Offer> offerList = offerRepository.findByCompanyId(id);
         token = token.split(" ")[1];
         return getOfferListDetails(offerList, token);
     }
 
-//    public Offer createOffer(Offer offer, String token){
-//        String tokenToSend = token.split(" ")[1];
-//
-//        String userId = getUserIdFromToken(tokenToSend);
-//
-//        offer.setCreatorId(UUID.fromString(userId));
-//
-//        return offerRepository.save(offer);
-//    }
-
+    /**
+     * Create an offer.
+     *
+     * @param offer Offer
+     * @return The created offer.
+     */
     public Offer saveOffer(Offer offer) {
         logger.info("Saving offer");
         Offer createdOffer = offerRepository.save(offer);
@@ -140,6 +179,13 @@ public class OfferService {
     /*------------------------ OTHER METHODS ------------------------*/
     /*---------------------------------------------------------------*/
 
+    /**
+     * Fetch company by id.
+     *
+     * @param id    Company id
+     * @param token Token of the user
+     * @return Company
+     */
     private CompanyDTO fetchCompanyById(UUID id, String token) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -148,7 +194,7 @@ public class OfferService {
 
         // Sending the request to address microservice
         ResponseEntity<CompanyDTO> responseEntity = restTemplate.exchange(
-                "lb://company-api/api/v1/company/" + id,
+                System.getenv(COMPANY_API_URI) + "/" + id,
                 HttpMethod.GET,
                 requestEntity,
                 CompanyDTO.class
@@ -162,6 +208,13 @@ public class OfferService {
         return responseEntity.getBody();
     }
 
+    /**
+     * Fetch address by id.
+     *
+     * @param id    Address id
+     * @param token Token of the user
+     * @return Address
+     */
     private AddressDTO fetchAddressById(UUID id, String token) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -170,7 +223,7 @@ public class OfferService {
 
         // Sending the request to address microservice
         ResponseEntity<AddressDTO> responseEntity = restTemplate.exchange(
-                "lb://address-api/api/v1/address/" + id,
+                System.getenv(ADDRESS_API_URI) + "/" + id,
                 HttpMethod.GET,
                 requestEntity,
                 AddressDTO.class
@@ -184,9 +237,16 @@ public class OfferService {
         return responseEntity.getBody();
     }
 
+    /**
+     * Fetch recruiter by id.
+     *
+     * @param recruiterId Recruiter id
+     * @param headers     Headers
+     * @return Recruiter
+     */
     private RecruiterDTO fetchRecruiter(UUID recruiterId, HttpHeaders headers) {
         logger.info("Fetching recruiter");
-        String url = "lb://user-api/api/v1/user/" + recruiterId.toString();
+        String url = System.getenv(USER_API_URI) + "/" + recruiterId.toString();
         logger.info(recruiterId.toString());
         HttpEntity<String> entity = new HttpEntity<>(null, headers);
         ResponseEntity<RecruiterDTO> response = restTemplate.exchange(url, HttpMethod.GET, entity, RecruiterDTO.class);
@@ -197,10 +257,23 @@ public class OfferService {
         return recruiter;
     }
 
+    /**
+     * Get user id from token.
+     *
+     * @param token Token of the user
+     * @return User id
+     */
     private String getUserIdFromToken(String token) {
         return JWT.decode(token).getClaim("sub").asString();
     }
 
+    /**
+     * Check if the recruiter is in the company.
+     *
+     * @param companyId Company id
+     * @param token     Token of the user
+     * @return True if the recruiter is in the company, false otherwise
+     */
     public boolean isRecruiterInCompany(UUID companyId, String token) {
         String tokenToSend = token.split(" ")[1];
 
@@ -219,6 +292,13 @@ public class OfferService {
         }
     }
 
+    /**
+     * Check if the recruiter is the owner of the offer.
+     *
+     * @param offer Offer
+     * @param token Token of the user
+     * @return True if the recruiter is the owner of the offer, false otherwise
+     */
     public boolean isRecruiterOwnerOfOffer(Offer offer, String token) {
         String tokenToSend = token.split(" ")[1];
 
@@ -231,6 +311,13 @@ public class OfferService {
         return offer.getCreatorId().equals(UUID.fromString(userId));
     }
 
+    /**
+     * Check if the recruiter is the owner of the offer.
+     *
+     * @param id    Offer id
+     * @param token Token of the user
+     * @return True if the recruiter is the owner of the offer, false otherwise
+     */
     public boolean isRecruiterOwnerOfOfferById(UUID id, String token) {
         String tokenToSend = token.split(" ")[1];
 
@@ -266,10 +353,14 @@ public class OfferService {
         return notificationDTO;
     }
 
-    // FOR TEST PURPOSES
-    @Scheduled(cron = "*/5 * * * * *")
-    // TODO change to right cron for production
-//    @Scheduled(cron = "0 0 2 * * *")
+    /**
+     * Cron job that checks for completed offers.
+     * It sends an Experience to Experience microservice, send a notification to kafka and change the status of the offer to 'completed'.
+     */
+    // For dev
+    @Scheduled(cron = "*/5 * * * * *") // Every 5 seconds
+    // TODO change to the cron that is commented under
+    // @Scheduled(cron = "0 0 2 * * *") // Every day at 2am
     public void settingCompletedOffers() {
         logger.info("Checking for completed offers");
         List<Offer> offerList = offerRepository.findAll();
@@ -296,6 +387,13 @@ public class OfferService {
         }
     }
 
+    /**
+     * Get all offers by creator id.
+     *
+     * @param id    Creator id
+     * @param token Token of the user
+     * @return List of offers
+     */
     public List<OfferDetailDTO> getOfferByCreatorId(UUID id, String token) {
         List<Offer> offerList = offerRepository.findByCreatorId(id);
 
@@ -315,7 +413,5 @@ public class OfferService {
 
         return offerDetailDTOList;
     }
-
-    // TODO findSimilarOffer ?
 }
 

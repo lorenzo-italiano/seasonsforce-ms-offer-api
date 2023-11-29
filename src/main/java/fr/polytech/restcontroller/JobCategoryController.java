@@ -17,6 +17,11 @@ public class JobCategoryController {
     @Autowired
     private JobCategoryService jobCategoryService;
 
+    /**
+     * Get all job categories.
+     *
+     * @return A list of job categories.
+     */
     @GetMapping("/")
     public ResponseEntity<List<JobCategory>> getAllJobCategories() {
         return ResponseEntity.ok(jobCategoryService.getAllJobCategories());
@@ -32,6 +37,12 @@ public class JobCategoryController {
         }
     }
 
+    /**
+     * Create a job category.
+     *
+     * @param jobCategory The job category to create.
+     * @return The created job category.
+     */
     @IsRecruiter
     @PostMapping("/")
     public ResponseEntity<JobCategory> createJobCategory(@RequestBody JobCategory jobCategory) {
