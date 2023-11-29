@@ -7,7 +7,7 @@ RUN mkdir /app
 WORKDIR /app
 
 # Copier le jar de votre application Spring Boot dans le conteneur
-COPY seasonsforce-ms-offers-api-1.0-SNAPSHOT.jar /app/app.jar
+COPY seasonsforce-ms-offer-api-1.0-SNAPSHOT.jar /app/app.jar
 
 # Exposer le port sur lequel votre application Spring Boot s'exécute (par défaut : 8080)
 EXPOSE 8080
